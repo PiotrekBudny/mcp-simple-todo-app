@@ -66,3 +66,34 @@ export async function addTodo(payload: AddTodoPayload): Promise<Todo> {
 
   return body.data;
 }
+
+interface UpdateTodoPayload {
+  title?: string;
+  description?: string;
+  status?: string;
+  deadline?: string;
+}
+
+export async function updateTodo(id: number, payload: UpdateTodoPayload): Promise<Todo> {
+  const url = `${TODOS_API_URL}/${id}`;
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Todos API responded with ${response.status} ${response.statusText}`
+    );
+  }
+
+  const body = (await response.json()) as { success: boolean; data: Todo };
+
+  if (!body.success || !body.data) {
+    throw new Error("Todos API returned an unexpected response shape");
+  }
+
+  return body.data;
+}

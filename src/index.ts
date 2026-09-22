@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { fetchTodos, addTodo } from "./todos.js";
+import { fetchTodos, addTodo, updateTodo } from "./todos.js";
 
 const server = new McpServer(
   {
@@ -90,6 +90,42 @@ server.registerTool(
   }
 );
 
+const updateTodoInputSchema = z.object({
+  id: z.number().describe("The ID of the todo item to update"),
+  title: z.string().optional().describe("Optional new title for the todo"),
+  description: z.string().optional().describe("Optional new description for the todo"),
+  status: z.string().optional().describe("Optional new status (pending|in-progress|completed)"),
+  deadline: z.string().optional().describe("Optional new deadline (ISO 8601 format)"),
+});
+
+server.registerTool(
+  "update_todo",
+  {
+    title: "Update todo",
+    description: "Update an existing todo item. All fields are optional - only provide the fields you want to update.",
+    inputSchema: updateTodoInputSchema,
+  },
+  async (args) => {
+    try {
+      const { id, title, description, status, deadline } = args as z.infer<typeof updateTodoInputSchema>;
+
+      const updatedTodo = await updateTodo(id, { title, description, status, deadline });
+      const structuredContent = { todo: updatedTodo };
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(structuredContent, null, 2) }],
+        structuredContent,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Failed to update todo: ${message}` }],
+      };
+    }
+  }
+);
+
 server.registerPrompt(
   "create_todo",
   {
@@ -126,6 +162,72 @@ server.registerPrompt(
       },
     ],
   })
+);
+
+server.registerPrompt(
+  "update_todo",
+  {
+    title: "Update todo",
+    description: "Guide user through updating an existing todo item by gathering information and then updating it.",
+    argsSchema: {
+      id: z.string().or(z.number()).describe("The ID of the todo item to update"),
+      title: z
+        .string()
+        .optional()
+        .describe("The new title of the todo item"),
+      description: z
+        .string()
+        .optional()
+        .describe("The new description of the todo item"),
+      status: z
+        .string()
+        .optional()
+        .describe(
+          "The new status of the todo item (pending|in-progress|completed)"
+        ),
+      deadline: z
+        .string()
+        .optional()
+        .describe(
+          "The new deadline of the todo item in ISO date format (e.g. '2025-07-31T23:59:59Z')"
+        ),
+    }
+  },
+  async (args) => {
+    const id = typeof args.id === "string" ? parseInt(args.id, 10) : args.id;
+    try {
+      const updatedTodo = await updateTodo(id, {
+        title: args.title,
+        description: args.description,
+        status: args.status,
+        deadline: args.deadline,
+      });
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Successfully updated TODO item with ID ${id}. Updated todo: ${JSON.stringify(updatedTodo, null, 2)}`,
+            },
+          },
+        ],
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Failed to update TODO item with ID ${id}: ${message}`,
+            },
+          },
+        ],
+      };
+    }
+  }
 );
 
 server.registerPrompt(
