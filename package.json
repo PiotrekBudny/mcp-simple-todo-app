@@ -1,0 +1,37 @@
+{
+  "name": "mcp-simple-todo-app",
+  "version": "1.0.0",
+  "description": "A simple MCP todo app server",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-simple-todo-app": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "test": "npx -y @modelcontextprotocol/inspector npx -y tsx src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PiotrekBudny/mcp-simple-todo-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/PiotrekBudny/mcp-simple-todo-app/issues"
+  },
+  "homepage": "https://github.com/PiotrekBudny/mcp-simple-todo-app#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2",
+    "zod": "^4.6.5"
+  }
+}
