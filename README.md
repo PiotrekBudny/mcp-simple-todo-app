@@ -81,7 +81,7 @@ This uses the `@modelcontextprotocol/inspector` to allow you to interact with th
 
 ## Configuration
 
-The server exposes a single tool: `get_todos`
+The server exposes the following tools and prompts:
 
 ### Available Tools
 
@@ -122,6 +122,38 @@ Fetches all todo items from the configured API endpoint.
 }
 ```
 
+#### `add_todo`
+Creates a new todo item.
+
+**Parameters:**
+- `title` (string, required): The todo title
+- `description` (string, required): The todo description
+- `deadline` (string, optional): ISO8601 deadline timestamp
+
+**Returns:** The created todo object
+
+#### `update_todo`
+Updates an existing todo item.
+
+**Parameters:**
+- `id` (number, required): The todo ID to update
+- `title` (string, optional): New title
+- `description` (string, optional): New description
+- `status` (string, optional): New status (pending, in-progress, or completed)
+- `deadline` (string, optional): New deadline (ISO8601 timestamp)
+
+**Returns:** The updated todo object
+
+### Available Prompts
+
+#### `analyze_todos`
+Analyzes your todo items and provides insights or suggestions.
+
+**Parameters:**
+- `focus` (string, optional): Analysis focus area - can be "deadlines", "status", or "priority"
+
+**Description:** Fetches all todos and asks Claude to analyze them, optionally focusing on a specific aspect like upcoming deadlines, status distribution, or task priority.
+
 ## API Requirements
 
 The todo API should respond with the following format:
@@ -143,6 +175,32 @@ The todo API should respond with the following format:
   "total": 1
 }
 ```
+
+## MCP Server Integration
+
+### Claude Desktop Integration
+
+To use this MCP server with Claude Desktop, add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "mcp-simple-todo-app": {
+      "command": "node",
+      "args": ["/path/to/mcp-simple-todo-app/dist/index.js"]
+    }
+  }
+}
+```
+
+Then rebuild the project (`npm run build`) and restart Claude Desktop.
+
+### Supported MCP Clients
+
+This server can be used with any MCP-compatible client, such as:
+- Claude Desktop
+- Custom AI applications with MCP support
+- MCP inspector (for testing)
 
 ## Project Structure
 
